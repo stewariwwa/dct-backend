@@ -1,0 +1,194 @@
+
+<app-loader></app-loader>
+<mat-tab-group #oAccesstypeTabGroup
+(selectedTabChange)="FunDCT_selectTab($event)">
+<mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon class="example-tab-icon">list</mat-icon>
+      <strong>Listing Acesstypes </strong>
+    </ng-template>
+
+    
+    <div class="container mat-elevation-z8">
+      <div class="form">
+        <mat-form-field floatPlaceholder="never" color="accent" >
+          <input matInput #filter placeholder="Filter Acesstypes" (keyup)="FunDCT_applyFilter($event)">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <mat-table *ngIf="bAccesstypeListing" #table [dataSource]="dataSource" matSort class="mat-cell"
+        (matSortChange)="FunDCT_Sort($event)">
+        <ng-container matColumnDef="_id">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>Id</mat-header-cell>
+          <mat-cell *matCellDef="let row" matTooltip="{{row._id}}" matTooltipPosition="below">{{(row._id.length > 15) ? ((row._id).slice(0, 15) + '...') : row._id}}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="cAccessCode">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>Access Code</mat-header-cell>
+          <mat-cell *matCellDef="let row" matTooltip="{{row.cAccessCode}}" matTooltipPosition="below">
+            {{(row.cAccessCode.length > 15) ? ((row.cAccessCode).slice(0, 15) + '...') : row.cAccessCode}}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="cAccessName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>Access Name</mat-header-cell>
+          <mat-cell *matCellDef="let row" matTooltip="{{row.cAccessName}}" matTooltipPosition="below">
+            {{(row.cAccessName.length > 15) ? ((row.cAccessName).slice(0, 15) + '...') : row.cAccessName}}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="cAccessDesc">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>Acess Description</mat-header-cell>
+          <mat-cell *matCellDef="let row" matTooltip="{{row.cAccessDesc}}" matTooltipPosition="below">{{
+            row.cAccessDesc }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="cStatusCode">
+          <mat-header-cell *matHeaderCellDef mat-sort-header (click)="$event.stopPropagation()">Status</mat-header-cell>
+          <mat-cell *matCellDef="let row" matTooltip="{{row.oAccesstypeListing.cStatusCode}}" matTooltipPosition="below">{{
+            row.oAccesstypeListing.cStatusCode }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <mat-header-cell *matHeaderCellDef>
+            <button mat-icon-button color="primary" (click)="FunDCT_AddAccesstypes()">
+              <mat-icon aria-label="Example icon-button with a heart icon">add</mat-icon>
+              <button mat-icon-button (click)="FunDCT_refreshAccessTypes()">
+                <mat-icon>refresh</mat-icon>
+              </button>
+            </button>
+          </mat-header-cell>
+
+          <mat-cell *matCellDef="let row; let i=index;">
+            <button mat-icon-button color="accent" (click)="FunDCT_EditAccesstypes(row._id)">
+              <mat-icon aria-label="Edit">edit</mat-icon>
+            </button>
+
+            <button mat-icon-button color="accent" (click)="FunDCT_DeleteAccesstypes(row._id)">
+              <mat-icon aria-label="Delete">delete</mat-icon>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+      </mat-table>
+
+      <div class="no-results" *ngIf="!bAccesstypeListing"> 
+        No Accesstypes found.
+      </div>
+
+      <mat-paginator [pageSizeOptions]="[5, 10, 15, 20, 30]" showFirstLastButtons (page)="FunDCT_pageChanged($event)">
+      </mat-paginator>
+    </div>
+  </mat-tab>
+
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon class="example-tab-icon">add</mat-icon>
+      <strong>Add New AccessType</strong>
+    </ng-template>
+    <form class="accesstype-form" [formGroup]="oNewAcessForm" (ngSubmit)="FunDCT_InsertAccesstypes()">
+      <mat-card-content>
+        <mat-form-field class="full-width" appearance="fill">
+          <input id="cAccessCode" matInput placeholder="Access Code" formControlName="cAccessCode" type="text"
+           autocomplete="cAccessCode">
+        <mat-error *ngIf="oNewAcessForm.get('cAccessCode').hasError('required')">Please select Aceess code
+        </mat-error>
+      </mat-form-field>
+
+        <mat-form-field class="full-width" appearance="fill">
+          <input id="cAccessName" matInput placeholder="Access Name" formControlName="cAccessName" type="text"
+            pattern="[a-zA-Z_]*" autocomplete="cAccessName">
+          <mat-error *ngIf="oNewAcessForm.get('cAccessName').hasError('required')">Please enter a Access name
+          </mat-error>
+          <mat-error *ngIf="oNewAcessForm.get('cAccessName').hasError('pattern')">Please enter valid Access name
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="full-width" appearance="fill">
+          <textarea id="cAccessDesc" matInput placeholder="Description" formControlName="cAccessDesc"></textarea>
+          <mat-error *ngIf="oNewAcessForm.get('cAccessDesc').hasError('required')">Please enter Description
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Status Code</mat-label>
+          <mat-select formControlName="iStatusID" id="iStatusID">
+            <mat-option>Clear</mat-option>
+            <mat-option *ngFor="let aStatusDetails of oStatuses" [value]="aStatusDetails._id">
+              {{aStatusDetails.cStatusCode}}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="oNewAcessForm.get('iStatusID').hasError('required')">Please select status code</mat-error>
+        </mat-form-field>
+      </mat-card-content>
+
+      <mat-card-actions class="login-actions" fxLayout="row" fxLayoutGap="20px">
+        <button mat-raised-button id="login" style="background-color: #32B8DF;" color="primary"
+          [disabled]="oNewAcessForm.invalid">Submit</button>
+
+        <button type="button" mat-raised-button id="resetPassword" style="background-color: #32B8DF;" color="primary"
+          (click)="FunDCT_resetAccesstypes()">Reset</button>
+
+      </mat-card-actions>
+
+      <!-- <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar> -->
+    </form>
+  </mat-tab>
+
+  <mat-tab [disabled]="!bEnableEditAccesstypeTab">
+    <ng-template mat-tab-label>
+      <mat-icon class="example-tab-icon">create</mat-icon>
+      <strong>Edit Accesstype</strong>
+    </ng-template>
+    <form class="accesstype-form" [formGroup]="oUpdateAcessForm" (ngSubmit)="FunDCT_UpdateAccesstypes()">
+      <mat-card-content>
+
+        <mat-form-field class="full-width" appearance="fill">
+            <input id="cAccessCode" matInput placeholder="Access Code" formControlName="cAccessCode" type="text"
+             autocomplete="cAccessCode">
+          <mat-error *ngIf="oUpdateAcessForm.get('cAccessCode').hasError('required')">Please select Aceess code
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="full-width" appearance="fill">
+          <input id="cAccessName" matInput placeholder="Access Name" formControlName="cAccessName" type="text"
+            pattern="[a-zA-Z_]*" autocomplete="cAccessName">
+          <mat-error *ngIf="oUpdateAcessForm.get('cAccessName').hasError('required')">Please enter a Access code
+          </mat-error>
+          <mat-error *ngIf="oUpdateAcessForm.get('cAccessName').hasError('pattern')">Please enter valid Access code
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="full-width" appearance="fill">
+          <textarea id="cAccessDesc" matInput placeholder="cAccessDesc" formControlName="cAccessDesc"></textarea>
+          <mat-error *ngIf="oUpdateAcessForm.get('cAccessDesc').hasError('required')">Please enter Description
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Status Code</mat-label>
+          <mat-select formControlName="iStatusID" id="iStatusID">
+            <mat-option>Clear</mat-option>
+            <mat-option *ngFor="let aStatusDetails of oStatuses" [value]="aStatusDetails._id">
+              {{aStatusDetails.cStatusCode}}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="oUpdateAcessForm.get('iStatusID').hasError('required')">Please select status code
+          </mat-error>
+        </mat-form-field>
+      </mat-card-content>
+
+      <mat-card-actions class="login-actions" fxLayout="row" fxLayoutGap="20px">
+        <button mat-raised-button id="login" style="background-color: #32B8DF;" color="primary"
+          [disabled]="oUpdateAcessForm.invalid">Update</button>
+      </mat-card-actions>
+
+      <!-- <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar> -->
+    </form>
+  </mat-tab> 
+
+</mat-tab-group>
+
+
+
+
+ 
